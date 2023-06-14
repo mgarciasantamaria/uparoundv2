@@ -11,10 +11,11 @@ s3=aws_session.client('s3')
 
 while True:
     try:
-        time.sleep(5)
+        time.sleep(300)
         con=sqlite3.connect('data.db')
         cur=con.cursor()
         response1=cur.execute("select * from data").fetchall()
+        time.sleep(60)
         Counter_Before=Counter
         for file in response1:
             file_size=os.path.getsize(f"{src_path}{file[0]}")
@@ -23,6 +24,7 @@ while True:
                 if s3.list_objects_v2(Bucket=bucket, Prefix=file[0])['KeyCount'] != 0:
                     file_path=f"{src_path}{file[0]}"
                     s3.upload_file(file_path, bucket, file[0], Callback=ProgressPercentage(file_path))
+                    time.sleep(5)
                     os.remove(file_path)
                     cur.execute(f"delete from data where name like '{file[0]}'")
                     con.commit()
@@ -31,6 +33,7 @@ while True:
                     Replace_list.append(file)
                 else:
                     s3.upload_file(file_path, bucket, file[0], Callback=ProgressPercentage(file_path))
+                    time.sleep(5)
                     os.remove(file_path)
                     cur.execute(f"delete from data where name like '{file[0]}'")
                     con.commit()
